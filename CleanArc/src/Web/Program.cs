@@ -1,3 +1,4 @@
+﻿using System.Reflection;
 using CleanArc.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,11 +27,29 @@ app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+
+
+
+
+
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";
     settings.DocumentPath = "/api/specification.json";
 });
+
+// 在 app.MapEndpoints(); 前添加自动注册逻辑
+var endpointGroupTypes = Assembly.GetExecutingAssembly()
+    .GetTypes()
+    .Where(t => t.IsSubclassOf(typeof(EndpointGroupBase)) && !t.IsAbstract);
+
+foreach (var type in endpointGroupTypes)
+{
+    if (Activator.CreateInstance(type) is EndpointGroupBase instance)
+    {
+        instance.Map(app);
+    }
+}
 
 app.MapControllerRoute(
     name: "default",
@@ -44,7 +63,7 @@ app.UseExceptionHandler(options => { });
 
 app.Map("/", () => Results.Redirect("/api"));
 
-app.MapEndpoints();
+//app.MapEndpoints();
 
 app.Run();
 
