@@ -11,12 +11,14 @@ public class IdentityService : IIdentityService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
-
+    private readonly IApplicationDbContext _context;
     public IdentityService(
         UserManager<ApplicationUser> userManager,
+        IApplicationDbContext context,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
         IAuthorizationService authorizationService)
     {
+        _context = context;
         _userManager = userManager;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
@@ -57,7 +59,6 @@ public class IdentityService : IIdentityService
         {
             return false;
         }
-
         var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
 
         var result = await _authorizationService.AuthorizeAsync(principal, policyName);
